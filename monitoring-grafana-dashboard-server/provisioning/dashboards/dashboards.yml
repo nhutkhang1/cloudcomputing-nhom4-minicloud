@@ -1,0 +1,10 @@
+apiVersion: 1
+
+providers:
+  - name: minicloud
+    folder: minicloud
+    type: file
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/dashboards

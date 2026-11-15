@@ -1,0 +1,6 @@
+# Keep LF line endings for files mounted or executed in Linux containers.
+* text=auto eol=lf
+*.jpg binary
+*.png binary
+*.pdf binary
+*.docx binary
