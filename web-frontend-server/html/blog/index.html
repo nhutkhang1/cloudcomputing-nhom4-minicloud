@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>minicloud Blog</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="top">
+    <span class="brand">minicloud</span>
+    <a href="/">Home</a>
+    <a href="/blog/">Blog</a>
+  </header>
+
+  <main>
+    <h1>minicloud Blog</h1>
+    <p class="lead">Each member of Group 4 shares a post about their responsibilities in the system.</p>
+    <p><a href="/">Back to Home</a></p>
+
+    <ul class="posts">
+      <li>
+        <a href="/blog/blog1.html">Post 1 – From Static Pages to an Authenticated API: Web, App, Database, and Keycloak</a>
+        <div class="meta">Nguyễn Nhựt Khang – 523H0145</div>
+      </li>
+      <li>
+        <a href="/blog/blog2.html">Post 2 – One Network, Eleven Containers: Docker Compose, API Gateway, and Load Balancing</a>
+        <div class="meta">Nguyễn Trần Hoàng Nhân – 523H0164</div>
+      </li>
+      <li>
+        <a href="/blog/blog3.html">Post 3 – Storage, DNS, and Monitoring: MinIO, BIND9, Prometheus, and Grafana</a>
+        <div class="meta">Nguyễn Thành Nam – 523H0117</div>
+      </li>
+    </ul>
+  </main>
+
+  <footer>
+    This page is served by container <span class="node"><!--# echo var="hostname" --></span>
+  </footer>
+</body>
+</html>

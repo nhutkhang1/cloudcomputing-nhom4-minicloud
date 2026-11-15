@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Post 1 – Web, App, Database, and Keycloak | minicloud Blog</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="top">
+    <span class="brand">minicloud</span>
+    <a href="/">Home</a>
+    <a href="/blog/">Blog</a>
+  </header>
+
+  <main>
+    <article>
+      <h1>From Static Pages to an Authenticated API: Web, App, Database, and Keycloak</h1>
+      <p class="lead">Nguyễn Nhựt Khang – 523H0145</p>
+
+      <figure>
+        <img src="/blog/img/blog1.svg" alt="Request flow between the browser, Web, App, Database, and Keycloak">
+        <figcaption>Figure 1. The path of a token-authenticated request in minicloud</figcaption>
+      </figure>
+
+      <h2>Web Frontend: Serving Static Files with Nginx</h2>
+      <p>This page is packaged in the <code>minicloud-web</code> image, built from <code>nginx:stable-alpine</code>. The Dockerfile replaces the default configuration, copies <code>conf.default</code> and the <code>html/</code> directory, and adds the Nginx Prometheus Exporter. The <code>location ^~ /blog/</code> block uses <code>alias</code> to serve the blog directory.</p>
+
+      <h2>Application Backend: Flask</h2>
+      <p>The backend is a Flask application listening on port 8081 inside the container, published on host port 8085. It provides four main endpoints:</p>
+      <ul>
+        <li><code>/hello</code> returns a JSON greeting for a basic availability check.</li>
+        <li><code>/student</code> reads the student list from <code>students.json</code>.</li>
+        <li><code>/students-db</code> reads the <code>students</code> table in MariaDB.</li>
+        <li><code>/secure</code> returns data only when the request includes a valid token issued by Keycloak.</li>
+      </ul>
+
+      <h2>Database: Initializing Data with MariaDB</h2>
+      <p>MariaDB runs the <code>.sql</code> files in <code>/docker-entrypoint-initdb.d</code> during initialization when its data directory is empty. The project uses <code>001_init.sql</code> to create the <code>minicloud</code> database and <code>002_studentdb.sql</code> to create <code>studentdb</code>. Flask connects with a dedicated account granted read access to <code>studentdb</code> instead of using <code>root</code>.</p>
+
+      <h2>Keycloak: Who Can Access /secure?</h2>
+      <p>Keycloak issues tokens using OpenID Connect. The project defines the <code>realm_523H0145</code> realm, two users, <code>sv01</code> and <code>sv02</code>, and the public client <code>flask-app</code>. Flask retrieves the realm's public keys (JWKS) and checks the RS256 signature, expiration, issuing realm, and <code>myapp</code> audience.</p>
+<pre>curl -s -X POST http://localhost:8081/auth/realms/realm_523H0145/protocol/openid-connect/token \
+  -d grant_type=password -d client_id=flask-app \
+  -d username=sv01 -d password=...</pre>
+
+      <h2>Key Takeaway</h2>
+      <p>Tokens connect the authentication flow: Keycloak signs them, the client sends them, and Flask validates them. Flask does not need the user's password or a call to Keycloak for every request; it caches the public keys.</p>
+
+      <a class="back" href="/">← Back to Home</a> · <a class="back" href="/blog/">All posts</a>
+    </article>
+  </main>
+
+  <footer>
+    This page is served by container <span class="node"><!--# echo var="hostname" --></span>
+  </footer>
+</body>
+</html>

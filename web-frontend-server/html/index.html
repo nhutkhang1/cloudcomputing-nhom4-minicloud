@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>minicloud – Home</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="top">
+    <span class="brand">minicloud</span>
+    <a href="/">Home</a>
+    <a href="/blog/">Blog</a>
+    <a href="/api/hello">API</a>
+  </header>
+
+  <main>
+    <h1>minicloud – Home</h1>
+    <p class="lead">Group 4's mini cloud: 9 server types running in Docker on a shared <code>cloud-net</code> network.</p>
+    <p><a href="/blog/">Blog</a></p>
+
+    <h2>Latest Blog Posts</h2>
+    <ul class="posts">
+      <li>
+        <a href="/blog/blog1.html">Post 1 – From Static Pages to an Authenticated API: Web, App, Database, and Keycloak</a>
+        <div class="meta">Nguyễn Nhựt Khang – 523H0145</div>
+      </li>
+      <li>
+        <a href="/blog/blog2.html">Post 2 – One Network, Eleven Containers: Docker Compose, API Gateway, and Load Balancing</a>
+        <div class="meta">Nguyễn Trần Hoàng Nhân – 523H0164</div>
+      </li>
+      <li>
+        <a href="/blog/blog3.html">Post 3 – Storage, DNS, and Monitoring: MinIO, BIND9, Prometheus, and Grafana</a>
+        <div class="meta">Nguyễn Thành Nam – 523H0117</div>
+      </li>
+    </ul>
+
+    <h2>System Services</h2>
+    <div class="grid" id="services"></div>
+
+    <h2>Project Team</h2>
+    <table>
+      <tr><th>Name</th><th>Student ID</th><th>Responsibilities</th></tr>
+      <tr><td>Nguyễn Nhựt Khang</td><td>523H0145</td><td>Web, App, Database, Keycloak</td></tr>
+      <tr><td>Nguyễn Trần Hoàng Nhân</td><td>523H0164</td><td>Docker Compose, API Gateway, Load Balancing, AWS</td></tr>
+      <tr><td>Nguyễn Thành Nam</td><td>523H0117</td><td>MinIO, DNS, Prometheus, Grafana</td></tr>
+    </table>
+  </main>
+
+  <footer>
+    This page is served by container <span class="node"><!--# echo var="hostname" --></span>
+  </footer>
+
+  <script>
+    // Build service links from the current hostname (localhost, LAN IP, or EC2 public IP).
+    var host = location.hostname;
+    var services = [
+      ["API Gateway", "Nginx reverse proxy: /, /api/, /auth/, /student/", 80, "/"],
+      ["Web Frontend 1", "Nginx serves static pages and blog posts", 8080, "/"],
+      ["Web Frontend 2", "Second replica for load balancing", 8082, "/"],
+      ["Application Backend", "Flask API: /hello, /student, /students-db, /secure", 8085, "/hello"],
+      ["Keycloak", "OIDC authentication, realm realm_523H0145", 8081, "/auth/"],
+      ["MinIO Console", "S3-compatible object storage", 9001, "/"],
+      ["Prometheus", "Metrics collection", 9090, "/targets"],
+      ["Node Exporter", "System metrics", 9100, "/metrics"],
+      ["Grafana", "Monitoring dashboards", 3000, "/"]
+    ];
+    var box = document.getElementById("services");
+    services.forEach(function (s) {
+      var url = "http://" + host + (s[2] === 80 ? "" : ":" + s[2]) + s[3];
+      var el = document.createElement("div");
+      el.className = "card";
+      el.innerHTML = "<h3><a href='" + url + "'>" + s[0] + "</a></h3><p>" + s[1] + "</p><span class='port'>:" + s[2] + "</span>";
+      box.appendChild(el);
+    });
+    var extra = document.createElement("div");
+    extra.className = "card";
+    extra.innerHTML = "<h3>MariaDB and DNS</h3><p>No web interface: use the MariaDB client and dig</p><span class='port'>:3306</span> <span class='port'>:1053/udp</span>";
+    box.appendChild(extra);
+  </script>
+</body>
+</html>

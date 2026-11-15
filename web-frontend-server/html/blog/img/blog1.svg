@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" font-family="Arial, Helvetica, sans-serif" font-size="14">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#44546a"/></marker>
+  </defs>
+  <rect width="760" height="300" fill="#ffffff"/>
+  <g stroke="#1f6feb" stroke-width="1.5" fill="#e8f0fe">
+    <rect x="20" y="110" width="120" height="60" rx="8"/>
+    <rect x="200" y="30" width="150" height="60" rx="8"/>
+    <rect x="200" y="190" width="150" height="60" rx="8"/>
+    <rect x="420" y="110" width="150" height="60" rx="8"/>
+    <rect x="620" y="30" width="120" height="60" rx="8"/>
+    <rect x="620" y="190" width="120" height="60" rx="8"/>
+  </g>
+  <g text-anchor="middle" fill="#1b2533">
+    <text x="80" y="136" font-weight="bold">Browser</text>
+    <text x="80" y="155" font-size="12">curl / browser</text>
+    <text x="275" y="56" font-weight="bold">Keycloak</text>
+    <text x="275" y="75" font-size="12">realm_523H0145</text>
+    <text x="275" y="216" font-weight="bold">Web (Nginx)</text>
+    <text x="275" y="235" font-size="12">HTML, blog</text>
+    <text x="495" y="136" font-weight="bold">App (Flask)</text>
+    <text x="495" y="155" font-size="12">/hello /student /secure</text>
+    <text x="680" y="56" font-weight="bold">JWKS</text>
+    <text x="680" y="75" font-size="12">public keys</text>
+    <text x="680" y="216" font-weight="bold">MariaDB</text>
+    <text x="680" y="235" font-size="12">studentdb</text>
+  </g>
+  <g stroke="#44546a" stroke-width="1.5" fill="none" marker-end="url(#a)">
+    <path d="M110,110 L205,88"/>
+    <path d="M110,170 L205,198"/>
+    <path d="M140,140 L418,140"/>
+    <path d="M540,110 L622,82"/>
+    <path d="M540,170 L622,198"/>
+  </g>
+  <g font-size="12" fill="#44546a">
+    <text x="112" y="88">1. Get token</text>
+    <text x="112" y="200">static pages</text>
+    <text x="205" y="132">2. /secure + Bearer token</text>
+    <text x="548" y="88">3. Verify JWT</text>
+    <text x="548" y="200">read data</text>
+  </g>
+</svg>
