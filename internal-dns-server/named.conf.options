@@ -1,0 +1,10 @@
+options {
+  directory "/var/cache/bind";
+  listen-on { any; };
+  listen-on-v6 { none; };
+  allow-query { any; };
+  recursion yes;
+  // Restrict recursion to local clients to avoid exposing an open resolver.
+  allow-recursion { localhost; localnets; };
+  dnssec-validation no;
+};

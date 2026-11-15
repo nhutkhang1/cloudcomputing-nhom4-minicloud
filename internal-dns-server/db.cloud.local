@@ -1,0 +1,21 @@
+$TTL 1H
+; Increment the SOA serial after zone changes, then restart internal-dns-server.
+@   IN SOA  ns.cloud.local. admin.cloud.local. ( 2026111501 1H 15M 1W 1H )
+    IN NS   ns.cloud.local.
+ns                  IN A 10.10.10.53
+
+; Web aliases
+web-frontend-server IN A 10.10.10.10
+web-server          IN A 10.10.10.10
+
+; Application, storage, and authentication services
+app-backend         IN A 10.10.10.20
+minio               IN A 10.10.10.50
+keycloak            IN A 10.10.10.40
+
+; Other services
+web-frontend-server2 IN A 10.10.10.11
+db                  IN A 10.10.10.30
+prometheus          IN A 10.10.10.61
+grafana             IN A 10.10.10.62
+proxy               IN A 10.10.10.5
