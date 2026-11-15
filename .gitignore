@@ -1,0 +1,23 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.verification/
+
+# Runtime data and local output
+object-storage-server/data/
+*.log
+
+# Packaging excludes
+Others/
+scripts/
+*.docx
+*.pdf

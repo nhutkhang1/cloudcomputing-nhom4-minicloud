@@ -1,0 +1,7 @@
+[
+  { "id": "523H0145", "name": "Nguyễn Nhựt Khang", "major": "Computer Science", "gpa": 3.4 },
+  { "id": "523H0164", "name": "Nguyễn Trần Hoàng Nhân", "major": "Computer Science", "gpa": 3.5 },
+  { "id": "523H0117", "name": "Nguyễn Thành Nam", "major": "Computer Science", "gpa": 3.3 },
+  { "id": "523H9001", "name": "Trần Minh Anh", "major": "Software Engineering", "gpa": 3.6 },
+  { "id": "523H9002", "name": "Lê Hoàng Phúc", "major": "Computer Networks and Data Communications", "gpa": 3.2 }
+]

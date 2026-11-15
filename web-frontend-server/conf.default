@@ -1,0 +1,37 @@
+server {
+  listen 80;
+  server_name _;
+  root /usr/share/nginx/html;
+  index index.html;
+  charset utf-8;
+
+  # Identify the serving container for the load-balancing demo.
+  add_header X-Served-By $hostname always;
+  ssi on;
+
+  location / { try_files $uri $uri/ =404; }
+  location ^~ /blog/ {
+    alias /usr/share/nginx/html/blog/;
+    index index.html;
+    autoindex off;
+  }
+
+  location = /healthz {
+    access_log off;
+    default_type text/plain;
+    return 200 "ok\n";
+  }
+
+  # Expose Prometheus metrics from the exporter in this container (job "web").
+  location = /metrics {
+    access_log off;
+    proxy_pass http://127.0.0.1:9113/metrics;
+  }
+}
+server {
+  listen 127.0.0.1:8088;
+  location = /stub_status {
+    stub_status;
+    access_log off;
+  }
+}

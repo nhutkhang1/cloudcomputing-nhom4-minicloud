@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Post 2 – Docker Compose, API Gateway, and Load Balancing | minicloud Blog</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="top">
+    <span class="brand">minicloud</span>
+    <a href="/">Home</a>
+    <a href="/blog/">Blog</a>
+  </header>
+
+  <main>
+    <article>
+      <h1>One Network, Eleven Containers: Docker Compose, API Gateway, and Load Balancing</h1>
+      <p class="lead">Nguyễn Trần Hoàng Nhân – 523H0164</p>
+
+      <figure>
+        <img src="/blog/img/blog2.svg" alt="The API Gateway distributes requests between two web servers using Round Robin">
+        <figcaption>Figure 1. The API Gateway routes requests and balances web traffic between two servers</figcaption>
+      </figure>
+
+      <h2>Why Use a Dedicated Network?</h2>
+      <p>All minicloud containers join the <code>cloud-net</code> bridge network (<code>10.10.10.0/24</code>). Docker provides internal DNS on this user-defined network, allowing containers to connect by name, such as <code>http://application-backend-server:8081</code>. Static container IP addresses also allow BIND9 records to point to the intended services.</p>
+
+      <h2>docker-compose.yml: Defining the System</h2>
+      <p>A single file defines 11 containers, their ports, volumes, and startup dependencies. Three configuration choices matter:</p>
+      <ul>
+        <li><code>restart: unless-stopped</code> allows containers to restart after the Docker daemon restarts, unless they were explicitly stopped.</li>
+        <li>Each service has a <code>healthcheck</code>. The gateway uses <code>depends_on</code> with <code>condition: service_healthy</code> to wait for the Web and App services to become ready.</li>
+        <li>Image tags are declared in Compose and the Dockerfiles. Some use release versions; the locally built Web and App images use a configurable tag that defaults to <code>latest</code>. Tags such as <code>stable-alpine</code> may change over time.</li>
+      </ul>
+
+      <h2>API Gateway: A Shared Entry Point</h2>
+      <p>The gateway runs Nginx on port 80 and forwards requests according to their paths:</p>
+      <table>
+        <tr><th>Path</th><th>Destination</th></tr>
+        <tr><td><code>/</code></td><td>the two web servers</td></tr>
+        <tr><td><code>/api/</code></td><td>Flask (removing the <code>/api</code> prefix)</td></tr>
+        <tr><td><code>/auth/</code></td><td>Keycloak</td></tr>
+        <tr><td><code>/student/</code></td><td>Flask at <code>/student</code></td></tr>
+      </table>
+
+      <h2>Round Robin Load Balancing</h2>
+      <p>The <code>web-frontend-server1</code> and <code>web-frontend-server2</code> containers run the same image. The gateway groups them in an <code>upstream</code> block; Nginx uses Round Robin by default to distribute requests between them.</p>
+<pre>upstream web_backend {
+    server web-frontend-server1:80;
+    server web-frontend-server2:80;
+}</pre>
+      <p>Each web server exposes its hostname in the <code>X-Served-By</code> header and the page footer. Refresh the page several times to observe both hostnames. If one server becomes unavailable, the gateway can retry eligible requests against the other server.</p>
+
+      <a class="back" href="/">← Back to Home</a> · <a class="back" href="/blog/">All posts</a>
+    </article>
+  </main>
+
+  <footer>
+    This page is served by container <span class="node"><!--# echo var="hostname" --></span>
+  </footer>
+</body>
+</html>

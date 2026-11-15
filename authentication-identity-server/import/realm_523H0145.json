@@ -1,0 +1,66 @@
+{
+  "realm": "realm_523H0145",
+  "displayName": "minicloud - realm 523H0145",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "accessTokenLifespan": 300,
+  "users": [
+    {
+      "username": "sv01",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sinh Vien",
+      "lastName": "01",
+      "email": "sv01@cloud.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "REPLACE_WITH_SV01_PASSWORD",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "sv02",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sinh Vien",
+      "lastName": "02",
+      "email": "sv02@cloud.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "REPLACE_WITH_SV02_PASSWORD",
+          "temporary": false
+        }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "flask-app",
+      "name": "Flask App (application-backend-server)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "audience-myapp",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "myapp",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ]
+}

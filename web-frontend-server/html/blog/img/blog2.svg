@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 320" font-family="Arial, Helvetica, sans-serif" font-size="14">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#44546a"/></marker>
+  </defs>
+  <rect width="760" height="320" fill="#ffffff"/>
+  <rect x="190" y="14" width="556" height="292" rx="12" fill="#f5f7fb" stroke="#9aa7b8" stroke-dasharray="6 4"/>
+  <text x="204" y="36" fill="#5d6b7e" font-size="12">cloud-net 10.10.10.0/24</text>
+  <g stroke="#1f6feb" stroke-width="1.5" fill="#e8f0fe">
+    <rect x="20" y="130" width="120" height="60" rx="8"/>
+    <rect x="220" y="130" width="150" height="60" rx="8"/>
+    <rect x="470" y="50" width="250" height="44" rx="8"/>
+    <rect x="470" y="106" width="250" height="44" rx="8"/>
+    <rect x="470" y="186" width="250" height="44" rx="8"/>
+    <rect x="470" y="242" width="250" height="44" rx="8"/>
+  </g>
+  <g text-anchor="middle" fill="#1b2533">
+    <text x="80" y="156" font-weight="bold">Client</text>
+    <text x="80" y="175" font-size="12">port 80</text>
+    <text x="295" y="156" font-weight="bold">API Gateway</text>
+    <text x="295" y="175" font-size="12">Nginx reverse proxy</text>
+    <text x="595" y="77">web-frontend-server1 (.10)</text>
+    <text x="595" y="133">web-frontend-server2 (.11)</text>
+    <text x="595" y="213">application-backend-server (.20)</text>
+    <text x="595" y="269">authentication-identity-server (.40)</text>
+  </g>
+  <g stroke="#44546a" stroke-width="1.5" fill="none" marker-end="url(#a)">
+    <path d="M140,160 L218,160"/>
+    <path d="M370,146 L468,74"/>
+    <path d="M370,154 L468,128"/>
+    <path d="M370,166 L468,206"/>
+    <path d="M370,174 L468,262"/>
+  </g>
+  <g font-size="12" fill="#44546a">
+    <text x="385" y="92">/ request 1</text>
+    <text x="408" y="134">/ request 2</text>
+    <text x="398" y="200">/api/ /student/</text>
+    <text x="380" y="246">/auth/</text>
+  </g>
+</svg>

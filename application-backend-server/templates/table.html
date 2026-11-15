@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <style>
+    body { font-family: system-ui, "Segoe UI", Arial, sans-serif; background: #f5f7fb; color: #1b2533; margin: 0; padding: 32px 16px; }
+    main { max-width: 860px; margin: 0 auto; }
+    h1 { font-size: 1.6rem; margin: 0 0 4px; }
+    p { color: #5d6b7e; margin: 0 0 16px; }
+    table { border-collapse: collapse; width: 100%; background: #fff; }
+    th, td { border: 1px solid #dde3ec; padding: 9px 12px; text-align: left; }
+    th { background: #1f6feb; color: #fff; }
+    tr:nth-child(even) td { background: #f0f5ff; }
+    code { background: #e8f0fe; padding: 1px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{{ title }}</h1>
+    <p>Data source: <code>{{ source }}</code> · {{ rows|length }} records · Raw JSON: append <code>?format=json</code></p>
+    <table>
+      <tr>{% for c in columns %}<th>{{ c }}</th>{% endfor %}</tr>
+      {% for r in rows %}
+      <tr>{% for c in columns %}<td>{{ r[c] }}</td>{% endfor %}</tr>
+      {% endfor %}
+    </table>
+  </main>
+</body>
+</html>
