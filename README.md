@@ -70,10 +70,11 @@ id -g
 mkdir -p object-storage-server/data
 ```
 
-Edit `.env` and replace every `REPLACE_WITH_...` value. Set `HOST_UID` and
-`HOST_GID` to your numeric IDs so MinIO can write to the directory you just created.
-The MinIO password must contain at least eight characters. `.env` and runtime data
-are ignored by Git.
+Edit `.env` to set the MinIO administrator username and environment-specific
+values. The sample passwords use the repository name for the local demo. Set
+`HOST_UID` and `HOST_GID` to your numeric IDs so MinIO can write to the directory
+you just created. The MinIO password must contain at least eight characters.
+`.env` and runtime data are ignored by Git.
 
 | Variables | Meaning |
 | --- | --- |
@@ -88,18 +89,18 @@ are ignored by Git.
 | `HOST_UID`, `HOST_GID` | Linux host ownership IDs for MinIO's bind-mounted data directory. |
 | `GRAFANA_ADMIN_USER`, `GRAFANA_ADMIN_PASSWORD` | Grafana initial administrator credentials. |
 
-Compose rejects missing required credential variables. It does not reject literal
-placeholder strings, so replace them before startup.
+Compose rejects missing required credential variables. The sample credentials
+satisfy this check.
 
-### 2. Set the demo users' passwords
+### 2. Demo user credentials
 
-Before the first startup, edit
-`authentication-identity-server/import/realm_523H0145.json` locally:
+The imported users `sv01` and `sv02` also use the repository name as their sample
+password. To change these values before the first startup, edit each user's
+password credential in
+`authentication-identity-server/import/realm_523H0145.json` locally.
 
-- Replace `REPLACE_WITH_SV01_PASSWORD` with the password for `sv01`.
-- Replace `REPLACE_WITH_SV02_PASSWORD` with the password for `sv02`.
-
-These passwords are separate from `KC_ADMIN_PASSWORD`. Keep the realm
+User credentials and the bootstrap administrator credentials are managed
+separately. Keep the realm
 `realm_523H0145`, public client `flask-app`, and token audience `myapp` unchanged.
 Do not commit the locally edited realm file containing real passwords.
 
