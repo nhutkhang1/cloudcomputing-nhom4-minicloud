@@ -60,7 +60,7 @@
             "uid": "prometheus"
           },
           "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
-          "legendFormat": "CPU dang dung"
+          "legendFormat": "CPU used"
         }
       ]
     },
@@ -108,7 +108,7 @@
             "uid": "prometheus"
           },
           "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
-          "legendFormat": "Dang dung"
+          "legendFormat": "Used"
         },
         {
           "refId": "B",
@@ -117,7 +117,7 @@
             "uid": "prometheus"
           },
           "expr": "node_memory_MemAvailable_bytes",
-          "legendFormat": "Con trong (MemAvailable)"
+          "legendFormat": "Available (MemAvailable)"
         }
       ]
     },
@@ -164,7 +164,7 @@
             "uid": "prometheus"
           },
           "expr": "sum by (device) (rate(node_network_receive_bytes_total{device!=\"lo\"}[1m]))",
-          "legendFormat": "Nhan - {{device}}"
+          "legendFormat": "Receive - {{device}}"
         },
         {
           "refId": "B",
@@ -173,7 +173,7 @@
             "uid": "prometheus"
           },
           "expr": "sum by (device) (rate(node_network_transmit_bytes_total{device!=\"lo\"}[1m]))",
-          "legendFormat": "Gui - {{device}}"
+          "legendFormat": "Transmit - {{device}}"
         }
       ]
     }
