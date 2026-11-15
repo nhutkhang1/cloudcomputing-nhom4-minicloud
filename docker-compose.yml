@@ -1,0 +1,282 @@
+# minicloud
+# Nine server types (11 containers) on the shared cloud-net network.
+# Copy .env.example to .env and replace password placeholders before startup.
+name: minicloud
+
+x-common: &common
+  restart: unless-stopped
+
+services:
+  # 1. Web Frontend Server (two replicas for load balancing)
+  web-frontend-server1:
+    <<: *common
+    build: ./web-frontend-server
+    image: ${DOCKERHUB_USER:-local}/minicloud-web:${IMAGE_TAG:-latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-web1
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-web1
+    ports: ["8080:80"]
+    healthcheck: &web-health
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.10
+        aliases: [web-frontend-server, web, web-server]
+
+  web-frontend-server2:
+    <<: *common
+    build: ./web-frontend-server
+    image: ${DOCKERHUB_USER:-local}/minicloud-web:${IMAGE_TAG:-latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-web2
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-web2
+    ports: ["8082:80"]
+    healthcheck: *web-health
+    depends_on: [web-frontend-server1]
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.11
+
+  # 2. Application Backend Server
+  application-backend-server:
+    <<: *common
+    build: ./application-backend-server
+    image: ${DOCKERHUB_USER:-local}/minicloud-app:${IMAGE_TAG:-latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-app
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-app
+    environment:
+      OIDC_INTERNAL_URL: "http://authentication-identity-server:8080/auth/realms/${KC_REALM:-realm_523H0145}"
+      OIDC_REALM: "${KC_REALM:-realm_523H0145}"
+      OIDC_AUDIENCE: "myapp"
+      DB_HOST: relational-database-server
+      DB_NAME: studentdb
+      DB_USER: "${APP_DB_USER:-appuser}"
+      DB_PASSWORD: "${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}"
+    ports: ["8085:8081"]
+    depends_on:
+      relational-database-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8081/hello >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.20
+        aliases: [app-server, app]
+
+  # 3. Relational Database Server
+  relational-database-server:
+    <<: *common
+    image: mariadb:11
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-db
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-db
+    environment:
+      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}"
+      MARIADB_DATABASE: minicloud
+      MARIADB_USER: "${APP_DB_USER:-appuser}"
+      MARIADB_PASSWORD: "${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}"
+    volumes:
+      - ./relational-database-server/init:/docker-entrypoint-initdb.d:ro
+      - mariadb-data:/var/lib/mysql
+    ports: ["${DB_BIND:-127.0.0.1}:3306:3306"]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.30
+        aliases: [db]
+
+  # 4. Authentication Identity Server
+  authentication-identity-server:
+    <<: *common
+    image: quay.io/keycloak/keycloak:26.8.2
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-auth
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-auth
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: "${KC_ADMIN_USER:-admin}"
+      KC_BOOTSTRAP_ADMIN_PASSWORD: "${KC_ADMIN_PASSWORD:?Set KC_ADMIN_PASSWORD in .env}"
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_RELATIVE_PATH: "/auth"
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY_HEADERS: "xforwarded"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./authentication-identity-server/import:/opt/keycloak/data/import:ro
+    ports: ["8081:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /auth/health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"status\": \"UP\"' <&3"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.40
+        aliases: [keycloak]
+
+  # 5. Object Storage Server
+  object-storage-server:
+    <<: *common
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-storage
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-storage
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:?Set MINIO_ROOT_USER in .env}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}"
+    volumes:
+      - ./object-storage-server/data:/data
+      - ./object-storage-server/seed:/seed:ro
+    ports: ["9000:9000", "9001:9001"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.50
+        aliases: [minio]
+
+  # 6. Internal DNS Server
+  internal-dns-server:
+    <<: *common
+    image: internetsystemsconsortium/bind9:9.18
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-dns
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-dns
+    volumes:
+      - ./internal-dns-server/named.conf:/etc/bind/named.conf:ro
+      - ./internal-dns-server/named.conf.options:/etc/bind/named.conf.options:ro
+      - ./internal-dns-server/named.conf.local:/etc/bind/named.conf.local:ro
+      - ./internal-dns-server/db.cloud.local:/etc/bind/db.cloud.local:ro
+    ports: ["1053:53/udp", "1053:53/tcp"]
+    healthcheck:
+      test: ["CMD-SHELL", "dig +short +time=2 +tries=1 @127.0.0.1 ns.cloud.local | grep -q . || exit 1"]
+      interval: 10s
+      timeout: 4s
+      retries: 6
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.53
+        aliases: [dns-server]
+
+  # 7. Monitoring: Node Exporter + Prometheus
+  monitoring-node-exporter-server:
+    <<: *common
+    image: prom/node-exporter:v1.12.1
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-node-exporter
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-node-exporter
+    ports: ["9100:9100"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9100/metrics >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.60
+        aliases: [node-exporter]
+
+  monitoring-prometheus-server:
+    <<: *common
+    image: prom/prometheus:v3.16.0
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-prometheus
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-prometheus
+    volumes:
+      - ./monitoring-prometheus-server/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports: ["9090:9090"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9090/-/ready >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 8
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.61
+        aliases: [prometheus]
+
+  # 8. Grafana Dashboard Server
+  monitoring-grafana-dashboard-server:
+    <<: *common
+    image: grafana/grafana:11.6.16
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-grafana
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ./monitoring-grafana-dashboard-server/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring-grafana-dashboard-server/dashboards:/etc/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports: ["3000:3000"]
+    depends_on: [monitoring-prometheus-server]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 8
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.62
+        aliases: [grafana]
+
+  # 9. API Gateway Proxy Server
+  api-gateway-proxy-server:
+    <<: *common
+    image: nginx:stable-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-minicloud}-gateway
+    hostname: ${COMPOSE_PROJECT_NAME:-minicloud}-gateway
+    volumes:
+      - ./api-gateway-proxy-server/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports: ["80:80"]
+    depends_on:
+      web-frontend-server1:
+        condition: service_healthy
+      web-frontend-server2:
+        condition: service_healthy
+      application-backend-server:
+        condition: service_healthy
+      authentication-identity-server:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/gateway-health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    networks:
+      cloud-net:
+        ipv4_address: ${CLOUD_PREFIX:-10.10.10}.5
+        aliases: [proxy]
+
+networks:
+  cloud-net:
+    name: cloud-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${CLOUD_PREFIX:-10.10.10}.0/24
+          gateway: ${CLOUD_PREFIX:-10.10.10}.1
+
+volumes:
+  mariadb-data:
+    name: ${COMPOSE_PROJECT_NAME:-minicloud}-mariadb-data
+  keycloak-data:
+    name: ${COMPOSE_PROJECT_NAME:-minicloud}-keycloak-data
+  prometheus-data:
+    name: ${COMPOSE_PROJECT_NAME:-minicloud}-prometheus-data
+  grafana-data:
+    name: ${COMPOSE_PROJECT_NAME:-minicloud}-grafana-data
